@@ -1,0 +1,15 @@
+{
+  "name": "Ship Name",
+  "description": "Ship description",
+  "tags": ["incoming", "oneColumn"],
+  "picture": "picture.png",
+  "admin" : "admin",
+  "version": "0.0.1",
+  "settings": [],
+  "private_settings":[],
+  "deployment_settings": [],
+  "resources": [],
+  "readme": "readme.md",
+  "ui": false,
+  "schedules": []
+}
