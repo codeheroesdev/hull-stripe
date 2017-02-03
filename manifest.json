@@ -1,9 +1,9 @@
 {
-  "name": "Ship Name",
-  "description": "Ship description",
+  "name": "Stripe Webhook",
+  "description": "Stripe Webhook",
   "tags": ["incoming", "oneColumn"],
   "picture": "picture.png",
-  "admin" : "admin",
+  "admin" : "auth",
   "version": "0.0.1",
   "settings": [],
   "private_settings":[],
