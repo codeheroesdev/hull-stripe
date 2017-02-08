@@ -36,7 +36,7 @@ export default function (deps) {
 
       if (token) {
          return hull.get(ship.id).then(s => {
-          return { settings: s.private_settings };
+          return { settings: s.private_settings, token: req.hull.token };
         });
       }
       return Promise.reject();

@@ -25,12 +25,10 @@ const STRIPE_EVENT_NAMES = {
   "customer.subscription.updated": "Subscription updated",
 }
 
-const stripe = require("stripe")(
-  "sk_test_LWK49LLcu3U0Us0cI4D1xOSB"
-);
+const stripe = require("stripe")(process.env.CLIENT_SECRET);
 
 
-export default function stripeEvents(req, res) {
+export default function fetchEvents(req, res) {
   try {
     const event = req.body;
     const eventData = req.body.data.object;
@@ -163,15 +161,15 @@ export default function stripeEvents(req, res) {
               event_id: `stripe-${event.id}`
             }
           );
-          return res.send(200);
+          return res.sendStatus(200);
         }
       );
     } else {
-      return res.send(400);
+      return res.sendStatus(400);
     }
   } catch (err) {
     console.log(err);
-    return res.send(400);
+    return res.sendStatus(400);
   }
 
 

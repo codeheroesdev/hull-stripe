@@ -1,7 +1,7 @@
 {
-  "name": "hull-ship-slug",
+  "name": "hull-stripe",
   "version": "0.0.1",
-  "description": "ship-description",
+  "description": "Fetch incoming stripe events",
   "main": "build/index.js",
   "scripts": {
     "build": "npm run clean && npm run build:server",
@@ -19,7 +19,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/hull-ships/hull-boilerplate.git"
+    "url": "https://github.com/hull-ships/hull-stripe.git"
   },
   "keywords": [
     "hull",
@@ -28,9 +28,9 @@
   "author": "Hull",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/hull-ships/hull-boilerplate/issues"
+    "url": "https://github.com/hull-ships/hull-stripe/issues"
   },
-  "homepage": "https://github.com/hull-ships/hull-boilerplate",
+  "homepage": "https://github.com/hull-ships/hull-stripe",
   "dependencies": {
     "JSONStream": "^1.1.1",
     "babel-cli": "^6.14.0",
@@ -49,6 +49,7 @@
     "ejs": "^2.4.1",
     "express": "^4.13.4",
     "hull": "0.10.6",
+    "hull-ship-base": "git+https://git@github.com/michaloo/hull-ship-base.git",
     "kue": "^0.11.1",
     "kue-ui": "^0.1.0",
     "librato-node": "^4.1.0",
