@@ -43,6 +43,7 @@ export default function (deps) {
     },
     onLogin: (req, { hull, ship }) => {
       req.authParams = { ...req.body, ...req.query };
+      console.log("AUTHPARAMS", req.authParams);
       const newShip = {
         private_settings: {
           ...ship.private_settings,
