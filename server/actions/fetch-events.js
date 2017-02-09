@@ -1,39 +1,37 @@
 import Promise from "bluebird";
-import _ from 'lodash';
+import util from "util";
 
-import eventMapper from "../lib/event-mapper";
-import customerMapper from "../lib/customer-mapper";
-
-
-const STRIPE_EVENT_NAMES = {
-  "charge.succeeded": "Stripe charge succeeded",
-  "customer.subscription.created": "Stripe subscription started",
-  "customer.subscription.deleted": "Stripe subscription ended"
-}
+import getEventContext from "../lib/get-event-context";
+import getEventName from "../lib/get-event-name";
+import getEventProperties from "../lib/get-event-properties";
+import getUserIdent from "../lib/get-user-ident";
 
 const stripe = require("stripe")(process.env.CLIENT_SECRET);
 
-
 export default function fetchEvents(req, res) {
+  const hullClient = req.hull.client;
   const event = req.body;
-  console.log("incoming.event", event);
+  const name = getEventName(event);
+  hullClient.logger.debug("incoming.event", util.inspect(event, { depth: 4 }));
 
-  if (!_.has(STRIPE_EVENT_NAMES, event.type)) {
+  if (name === null) {
     return res.sendStatus(204);
   }
 
-  stripe.events.retrieve(event.id)
-    .then(verifiedEvent => {
-      const customerId = verifiedEvent.data.object.customer;
-      return stripe.customers.retrieve(customerId)
-        .then(customer => {
-          return { customer, event: verifiedEvent };
-        });
-    })
-    .then(({ customer, event }) => {
-      const { traits, properties } = eventMapper(event);
-      const user = customerMapper(customer)
-      console.log({ user, traits, properties });
-      res.sendStatus(200);
-    });
+  return Promise.all([
+    stripe.customers.retrieve(event.data.object.customer),
+    stripe.events.retrieve(event.id)
+  ]).spread((customer, verifiedEvent) => {
+    const properties = getEventProperties(verifiedEvent);
+    const context = getEventContext(verifiedEvent);
+    const user = getUserIdent(customer);
+    return hullClient.as(user).track(name, properties, context);
+  })
+  .then(() => {
+    return res.sendStatus(200);
+  })
+  .catch(err => {
+    hullClient.logger.err("fetchEvents.error", err);
+    return res.sendStatus(500);
+  });
 }
