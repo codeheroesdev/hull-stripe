@@ -1,6 +1,3 @@
-/**
- * Created by noope on 03/02/2017.
- */
 import express from "express";
 import passport from "passport";
 import bodyParser from "body-parser";

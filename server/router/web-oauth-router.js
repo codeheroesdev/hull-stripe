@@ -1,6 +1,3 @@
-/**
- * Created by noope on 03/02/2017.
- */
 import { Router } from "express";
 import { Strategy as StripeStrategy } from "passport-stripe";
 import moment from "moment";
@@ -18,7 +15,7 @@ export default function (deps) {
   } = deps;
 
 
-  router.use("/auth", OAuthHandler(Hull ,{
+  router.use("/auth", OAuthHandler(Hull, {
     hostSecret,
     shipCache,
     name: "Stripe",
@@ -27,7 +24,7 @@ export default function (deps) {
       clientID,
       clientSecret,
       scope: ["read_only"],
-      skipUserProfile: true
+      stripe_landing: "login"
     },
     hullMiddleware,
     isSetup(req, { hull, ship }) {
@@ -35,26 +32,21 @@ export default function (deps) {
       const { token } = ship.private_settings || {};
 
       if (token) {
-         return hull.get(ship.id).then(s => {
-          return { settings: s.private_settings, token: req.hull.token };
+        return hull.get(ship.id).then(s => {
+          return { settings: s.private_settings, token: req.hull.token, hostname: req.hostname };
         });
       }
       return Promise.reject();
     },
     onLogin: (req, { hull, ship }) => {
       req.authParams = { ...req.body, ...req.query };
-      console.log("AUTHPARAMS", req.authParams);
       const newShip = {
         private_settings: {
           ...ship.private_settings,
-          portal_id: req.authParams.portalId
+          ...req.authParams
         }
       };
-      return hull.put(ship.id, newShip)
-        .then(() => {
-          shipCache.setClient(req.hull.client);
-          return shipCache.del(ship.id);
-        });
+      return hull.put(ship.id, newShip);
     },
     onAuthorize: (req, { hull, ship }) => {
       const { refreshToken, accessToken } = (req.account || {});
@@ -66,11 +58,7 @@ export default function (deps) {
           token_fetched_at: moment().utc().format("x"),
         }
       };
-      return hull.put(ship.id, newShip)
-        .then(() => {
-          shipCache.setClient(req.hull.client);
-          return shipCache.del(ship.id);
-        });
+      return hull.put(ship.id, newShip);
     },
     views: {
       login: "login.html",
