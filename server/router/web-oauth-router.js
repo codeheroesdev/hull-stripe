@@ -40,13 +40,7 @@ export default function (deps) {
     },
     onLogin: (req, { hull, ship }) => {
       req.authParams = { ...req.body, ...req.query };
-      const newShip = {
-        private_settings: {
-          ...ship.private_settings,
-          ...req.authParams
-        }
-      };
-      return hull.put(ship.id, newShip);
+      return Promise.resolve();
     },
     onAuthorize: (req, { hull, ship }) => {
       const { refreshToken, accessToken } = (req.account || {});

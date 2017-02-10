@@ -6,12 +6,14 @@ import getEventName from "../lib/get-event-name";
 import getEventProperties from "../lib/get-event-properties";
 import getUserIdent from "../lib/get-user-ident";
 
-const stripe = require("stripe")(process.env.CLIENT_SECRET);
+const stripe = require("stripe");
 
 export default function fetchEvents(req, res) {
   const hullClient = req.hull.client;
   const event = req.body;
   const name = getEventName(event);
+  const stripeClient = stripe(req.hull.ship.private_settings.token);
+
   hullClient.logger.debug("incoming.event", util.inspect(event, { depth: 4 }));
 
   if (name === null) {
@@ -21,8 +23,8 @@ export default function fetchEvents(req, res) {
   req.hull.metric.inc("ship.incoming.events");
 
   return Promise.all([
-    stripe.customers.retrieve(event.data.object.customer),
-    stripe.events.retrieve(event.id)
+    stripeClient.customers.retrieve(event.data.object.customer),
+    stripeClient.events.retrieve(event.id)
   ]).spread((customer, verifiedEvent) => {
     const properties = getEventProperties(verifiedEvent);
     const context = getEventContext(verifiedEvent);
