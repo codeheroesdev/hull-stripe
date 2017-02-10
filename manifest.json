@@ -1,6 +1,6 @@
 {
-  "name": "Stripe Webhook",
-  "description": "Stripe Webhook",
+  "name": "Stripe",
+  "description": "Stripe Webhook to fetch events about customer and subscriptions",
   "tags": ["incoming", "oneColumn"],
   "picture": "picture.png",
   "admin" : "auth",

@@ -1,4 +1,4 @@
-# Ship Boilerplate
+# Stripe ship
 
 `npm install`
 `npm run start:dev` - autoload with watch
