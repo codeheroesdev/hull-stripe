@@ -6,7 +6,7 @@
   "scripts": {
     "build": "npm run clean && npm run build:server",
     "build:server": "babel server -d build",
-    "start": "npm run build && COMBINED=true node build",
+    "start": "node build",
     "start:dev": "NODE_ENV=development babel-watch -L server",
     "test": "NODE_ENV=test mocha --require babel-register -R spec ./tests",
     "test:lint": "eslint server tests",
