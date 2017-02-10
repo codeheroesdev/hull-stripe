@@ -21,7 +21,8 @@ app.use("/", WebOauthRouter({
   hostSecret,
   clientID,
   clientSecret,
-  hullMiddleware
+  hullMiddleware,
+  instrumentationAgent
 }));
 
 app.use("/stripe", actionRouter({ hullMiddleware }).action(fetchEvents));

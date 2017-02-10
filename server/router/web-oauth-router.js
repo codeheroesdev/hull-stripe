@@ -2,6 +2,8 @@ import { Router } from "express";
 import { Strategy as StripeStrategy } from "passport-stripe";
 import moment from "moment";
 import OAuthHandler from "../oauth-handler";
+import Promise from "bluebird";
+import _ from "lodash";
 
 export default function (deps) {
   const router = Router();
@@ -11,7 +13,8 @@ export default function (deps) {
     clientID,
     clientSecret,
     shipCache,
-    hullMiddleware
+    hullMiddleware,
+    instrumentationAgent
   } = deps;
 
 
@@ -33,7 +36,22 @@ export default function (deps) {
 
       if (token) {
         return hull.get(ship.id).then(s => {
-          return { settings: s.private_settings, token: req.hull.token, hostname: req.hostname };
+          const now = parseInt(new Date().getTime() / 1000);
+          const then = now - 3600; // one hour ago
+          const query = `ship.incoming.events{ship:${ship.id}}`;
+          instrumentationAgent.dogapi.initialize({
+            api_key: process.env.DATADOG_API_KEY,
+            app_key: process.env.DATADOG_APP_KEY
+          });
+          return Promise.fromCallback((cb) => instrumentationAgent.dogapi.metric.query(then, now, query, cb))
+          .then(res => {
+            const events = _.get(res, "series[0].pointlist", []).map(p => p[1]);
+            return { settings: s.private_settings,
+              token: req.hull.token,
+              hostname: req.hostname,
+              events
+            };
+          });
         });
       }
       return Promise.reject();

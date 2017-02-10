@@ -42,6 +42,7 @@
               <h4 class="m-0 pt-05 text-muted">Connected to <%= name %></h4>
             </div>
           </div>
+          <span class="line"><%= events.join(",") %></span> <strong><%= events.reduce((a,b)=>a+b) %></strong> events fetched in last hour.
           <hr>
           <ol>
             <li>To finish installation copy the url below</li>
@@ -60,6 +61,11 @@
   <script src="https://cdn.jsdelivr.net/clipboard.js/1.6.0/clipboard.min.js"></script>
   <script>
     new Clipboard('[data-clipboard-target]');
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/peity/3.2.1/jquery.peity.min.js"></script>
+  <script>
+  $(".line").peity("line");
   </script>
 </body>
 </html>
