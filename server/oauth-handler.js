@@ -2,6 +2,7 @@ import express from "express";
 import passport from "passport";
 import bodyParser from "body-parser";
 import querystring from "querystring";
+import Hull from "hull";
 
 const HOME_URL = "/";
 const LOGIN_URL = "/login";
@@ -27,8 +28,7 @@ export default function oauth(Client, {
   Strategy,
   views = {},
   options = {},
-  shipCache = null,
-  hullMiddleware,
+  shipCache = null
 }) {
   function getURL(req, url, qs = { token: req.hull.token }) {
     return `https://${req.hostname}${req.baseUrl}${url}?${querystring.stringify(qs)}`;
@@ -59,13 +59,13 @@ export default function oauth(Client, {
     done(null, user);
   });
 
-  const strategy = new Strategy(
-    { ...options, passReqToCallback: true },
-    function verifyAccount(req, accessToken, refreshToken, stripe_properties, done) {
-    done(undefined, { accessToken, refreshToken, stripe_properties });
+  const strategy = new Strategy({ ...options, passReqToCallback: true }, function verifyAccount(req, accessToken, refreshToken, profile, done) {
+    done(undefined, { accessToken, refreshToken, profile });
   });
 
   passport.use(strategy);
+
+  const hullMiddleware = Hull.Middleware({ hostSecret, fetchShip: true, cacheShip: false, shipCache });
 
   router.get(HOME_URL, hullMiddleware, (req, res) => {
     const { client, ship = {}, } = req.hull;
@@ -96,18 +96,13 @@ export default function oauth(Client, {
     next();
   }, authorize);
 
-  router.get(FAILURE_URL, hullMiddleware, function loginFailue(req, res) {
-    return res.render(views.failure, { name, urls: getURLs(req) });
-  });
+  router.get(FAILURE_URL, hullMiddleware, function loginFailue(req, res) { return res.render(views.failure, { name, urls: getURLs(req) }); });
   router.get(SUCCESS_URL, hullMiddleware, function login(req, res) { return res.render(views.success, { name, urls: getURLs(req) }); });
 
   router.get(CALLBACK_URL, hullMiddleware, authorize, (req, res) => {
     onAuthorize(req, { hull: req.hull.client, ship: req.hull.ship })
       .then(() => res.redirect(getURL(req, SUCCESS_URL)))
-      .catch((error) => {
-      console.log(error);
-      res.redirect(getURL(req, FAILURE_URL, { token: req.hull.token, error }))
-    });
+      .catch((error) => res.redirect(getURL(req, FAILURE_URL, { token: req.hull.token, error })));
   });
 
   return router;

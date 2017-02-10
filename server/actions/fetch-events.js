@@ -18,6 +18,8 @@ export default function fetchEvents(req, res) {
     return res.sendStatus(204);
   }
 
+  req.hull.metric.inc("ship.incoming.events");
+
   return Promise.all([
     stripe.customers.retrieve(event.data.object.customer),
     stripe.events.retrieve(event.id)
