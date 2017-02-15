@@ -1,0 +1,42 @@
+{
+  "name": "Hull Stripe Connector",
+  "description": "Stores Stripe events to Hull",
+  "repository": "https://github.com/hull-ships/hull-stripe",
+  "website": "https://www.hull.io",
+  "success_url": "/readme",
+  "env": {
+    "SECRET" : {
+      "description" : "A Secret key used to sign tokens",
+      "generator" : "secret"
+    },
+    "LOG_LEVEL" : {
+      "description" : "Logging level (emerg, alert, crit, error, warning, notice, info, debug)",
+      "value": "info"
+    },
+    "CLIENT_ID" : {
+      "description" : "oAuth Client ID",
+      "required": true
+    },
+    "CLIENT_SECRET" : {
+      "description" : "oAuth Client Secret",
+      "required": true
+    },
+    "DATADOG_API_KEY" : {
+      "description" : "Datadog API Key",
+      "required": true
+    },
+    "DATADOG_APP_KEY" : {
+      "description" : "Datadog App Key",
+      "required": true
+    },
+    "LOGSTASH_PORT" : {
+      "description" : "Logstash Port",
+      "required": false
+    },
+    "LOGSTASH_HOST" : {
+      "description" : "Logstash Host",
+      "required": false
+    },
+  },
+  "scripts": {}
+}
