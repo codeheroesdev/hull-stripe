@@ -1,30 +1,29 @@
-import { Hull, instrumentationAgent, hullMiddleware,
-  clientID, clientSecret, hostSecret, port } from "./bootstrap";
-
-import WebApp from "hull-ship-base/lib/app/web";
-import { actionRouter } from "hull-ship-base/lib/ship";
-
-import { fetchEvents } from "./actions";
-import WebOauthRouter from "./router/web-oauth-router";
-
+import Hull from "hull";
+import Server from "./server";
+import { name } from "../manifest.json";
 
 if (process.env.LOG_LEVEL) {
   Hull.logger.transports.console.level = process.env.LOG_LEVEL;
 }
 
-const app = WebApp({
-  Hull, instrumentationAgent
-});
+if (process.env.LOGSTASH_HOST && process.env.LOGSTASH_PORT) {
+  const Logstash = require("winston-logstash").Logstash; // eslint-disable-line global-require
+  Hull.logger.add(Logstash, {
+    node_name: name,
+    port: process.env.LOGSTASH_PORT || 1515,
+    host: process.env.LOGSTASH_HOST
+  });
+  Hull.logger.info("start", { transport: "logstash" });
+} else {
+  Hull.logger.info("start", { transport: "console" });
+}
 
-app.use("/", WebOauthRouter({
+
+Server({
   Hull,
-  hostSecret,
-  clientID,
-  clientSecret,
-  hullMiddleware,
-  instrumentationAgent
-}));
-
-app.use("/stripe", actionRouter({ hullMiddleware }).action(fetchEvents));
-
-app.listenHull(port);
+  clientID: process.env.CLIENT_ID,
+  clientSecret: process.env.CLIENT_SECRET,
+  hostSecret: process.env.SECRET || "1234",
+  devMode: process.env.NODE_ENV === "development",
+  port: process.env.PORT || 8082
+});
