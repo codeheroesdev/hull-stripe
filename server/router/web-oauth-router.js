@@ -57,7 +57,7 @@ export default function ({
 
         return Promise
         .all([metric, account, cache])
-        .then(([events, accnt]) => ({
+        .then(([events, accnt = {}]) => ({
           account: accnt,
           settings: s.private_settings,
           token: req.hull.token,
