@@ -43,14 +43,20 @@ export default function ({
         const now = parseInt(new Date().getTime() / 1000, 0);
         const then = now - 3600; // one hour ago
         const query = `ship.incoming.events{ship:${ship.id}}`;
-        instrumentationAgent.dogapi.initialize({
-          api_key: process.env.DATADOG_API_KEY,
-          app_key: process.env.DATADOG_APP_KEY
-        });
+
+        let metric;
+        if (process.env.DATADOG_API_KEY && process.env.DATADOG_APP_KEY) {
+          instrumentationAgent.dogapi.initialize({
+            api_key: process.env.DATADOG_API_KEY,
+            app_key: process.env.DATADOG_APP_KEY
+          });
+          metric = Promise
+          .fromCallback(cb => instrumentationAgent.dogapi.metric.query(then, now, query, cb));
+        } else {
+          metric = Promise.resolve();
+        }
         const cache = store.set(stripe_user_id, req.hull.token);
 
-        const metric = Promise
-        .fromCallback(cb => instrumentationAgent.dogapi.metric.query(then, now, query, cb));
 
         const account = Promise
         .fromCallback(cb => Stripe(clientSecret).account.retrieve(stripe_user_id, cb));
