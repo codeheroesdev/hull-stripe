@@ -1,0 +1,3 @@
+- Leverage oAuth to store Stripe auth.
+- Leverage the `user_id` field in webhooks sent to Connect to reverse-lookup organizations
+- Use Redis to store a reverse lookup table of `user_id` -> `id, secret, org` ?

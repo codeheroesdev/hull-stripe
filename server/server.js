@@ -1,11 +1,15 @@
-import InstrumentationAgent from "hull-ship-base/src/instrumentation";
-import WebApp from "hull-ship-base/src/app/web";
-import { actionRouter } from "hull-ship-base/src/ship";
+import InstrumentationAgent from "hull-ship-base/lib/instrumentation";
+import WebApp from "hull-ship-base/lib/app/web";
+import bodyParser from "body-parser";
+import Redis from "ioredis";
 import { fetchEvents } from "./actions";
 import WebOauthRouter from "./router/web-oauth-router";
+import StripeMiddleware from "./lib/stripe-middleware";
+import updateStripeMapping from "./lib/update-stripe-mapping";
+// import fetchStripeAccounts from "./lib/fetch-stripe-accounts";
 
 module.exports = function Server({ port, clientSecret, clientID, hostSecret, Hull }) {
-  const { Middleware } = Hull;
+  const { Middleware, NotifHandler } = Hull;
   const hullMiddleware = Middleware({ hostSecret, cacheShip: false });
 
   // This should be abstracted since anyway's it's using datadog specifics downstream
@@ -14,7 +18,11 @@ module.exports = function Server({ port, clientSecret, clientID, hostSecret, Hul
   // Wrapped express() call.
   const app = WebApp({ Hull, instrumentationAgent });
 
+  // Redis Store
+  const store = new Redis();
+
   app.use("/", WebOauthRouter({
+    store,
     Hull,
     hostSecret,
     clientID,
@@ -23,8 +31,29 @@ module.exports = function Server({ port, clientSecret, clientID, hostSecret, Hul
     instrumentationAgent
   }));
 
-  app.use("/stripe", actionRouter({ hullMiddleware }).action(fetchEvents));
 
+  app.post("/notify", NotifHandler({
+    hostSecret,
+    groupTraits: true,
+    onError: (message, status) => console.warn("Error", status, message),
+    handlers: {
+      "user:update": updateStripeMapping.bind(this, store),
+      "ship:update": updateStripeMapping.bind(this, store),
+      "segment:update": updateStripeMapping.bind(this, store)
+    }
+  }));
+
+  // // Fetch all accounts and store the reverse mapping;
+  // fetchStripeAccounts(clientSecret)
+  // .then(accounts => { console.log(accounts) }, err => console.log(err));
+
+  app.use("/stripe",
+    bodyParser.json(),
+    StripeMiddleware({ store, clientSecret }),
+    hullMiddleware,
+    fetchEvents
+  );
   app.listen(port, () => Hull.logger.info("webApp.listen", port));
+
   return app;
 };

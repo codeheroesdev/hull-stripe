@@ -18,7 +18,6 @@ if (process.env.LOGSTASH_HOST && process.env.LOGSTASH_PORT) {
   Hull.logger.info("start", { transport: "console" });
 }
 
-
 Server({
   Hull,
   clientID: process.env.CLIENT_ID,

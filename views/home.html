@@ -3,6 +3,12 @@
   <title>Hull <%= name %></title>
   <link rel="stylesheet" href="//dd04rofzygnm0.cloudfront.net/releases/master/865f04865d2448286626bac92c518a8f8ea8bafe/stylesheets/neue.css" />
   <style type="text/css" media="screen">
+    .logo{
+      border-radius: 100px;
+      width: 20px;
+      position: relative;
+      top: -1px;
+    }
     .check i.icon {
       color: rgba(75, 222, 122, 0.52);
       font-size: 2pc;
@@ -31,7 +37,7 @@
 
           <h1 class="mb-0 mt-05  text-center"><i class="icon icon-hull" style="font-size:64px;"></i></h1>
 
-          <div class="mb-1 media pb-1">
+          <div class="mb-1 media">
             <div class="media-left">
               <div class="media-object pr-1 pt-1">
                 <div class="check valid"><i class="icon icon-valid"></i></div>
@@ -39,34 +45,24 @@
             </div>
             <div class="media-body pt-1">
               <span class="pull-right"><a href="<%= urls.home %>&reset=true" class="btn btn-rounded btn-pill btn-secondary">Start over</a></span>
-              <h4 class="m-0 pt-05 text-muted">Connected to <%= name %></h4>
+              <h4 class="m-0 pt-05 text-muted">
+                Connected to <%= name %> account
+                <a href="https://stripe.com" target="_blank">
+                  <%= account.business_name %>
+                  <img src="<%= account.business_logo %>" class='logo'>
+                </a>
+              </h4>
             </div>
           </div>
+          <hr>
           <span class="line"><%= events.join(",") %></span> <strong><%= events.reduce((a,b)=>a+b, 0) %></strong> events fetched in last hour.
-          <hr>
-          <ol>
-            <li>To finish installation copy the url below</li>
-            <li>Go to the <a href="https://dashboard.stripe.com/account/webhooks" target="_blank">stripe account settings</a> and add new webhook endpoint</li>
-          </ol>
-          <hr>
-          <h5 class="text-muted mb-1">Webhook public url</h5>
-          <pre id="webhook_url">https://<%= hostname %>/stripe?hullToken=<%= token %></pre>
-          <button class="btn btn-rounded btn-block btn-primary" data-clipboard-target="#webhook_url">
-            Copy to clipboard
-          </button>
         </div>
       </div>
     </div>
   </div>
-  <script src="https://cdn.jsdelivr.net/clipboard.js/1.6.0/clipboard.min.js"></script>
-  <script>
-    new Clipboard('[data-clipboard-target]');
-  </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/peity/3.2.1/jquery.peity.min.js"></script>
-  <script>
-  $(".line").peity("line");
-  </script>
+  <script>$(".line").peity("line");</script>
 </body>
 </html>
 
