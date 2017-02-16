@@ -58,7 +58,8 @@ export default function ({
         return Promise
         .all([metric, account, cache])
         .then(([events, accnt = {}]) => ({
-          account: accnt,
+          business_name: accnt.business_name,
+          business_logo: accnt.business_logo,
           settings: s.private_settings,
           token: req.hull.token,
           hostname: req.hostname,
