@@ -1,6 +1,6 @@
 {
   "name": "Stripe",
-  "description": "Stripe Webhook to fetch events about customer and subscriptions",
+  "description": "Collect Stripe Charges and Subscription events",
   "tags": ["incoming", "oneColumn"],
   "picture": "picture.png",
   "admin" : "auth",
