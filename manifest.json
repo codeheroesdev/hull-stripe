@@ -11,5 +11,10 @@
   "resources": [],
   "readme": "readme.md",
   "ui": false,
-  "schedules": []
+  "schedules": [],
+  "subscriptions": [
+    {
+      "url": "/notify"
+    }
+  ]
 }
