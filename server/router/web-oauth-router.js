@@ -57,14 +57,18 @@ export default function ({
 
         return Promise
         .all([metric, account, cache])
-        .then(([events, accnt = {}]) => ({
-          business_name: accnt.business_name,
-          business_logo: accnt.business_logo,
-          settings: s.private_settings,
-          token: req.hull.token,
-          hostname: req.hostname,
-          events: _.get(events, "series[0].pointlist", []).map(p => p[1])
-        }));
+        .then(([events, accnt = {}]) => {
+          const data = {
+            business_name: accnt.business_name,
+            business_logo: accnt.business_logo,
+            settings: s.private_settings,
+            token: req.hull.token,
+            hostname: req.hostname,
+            events: _.get(events, "series[0].pointlist", []).map(p => p[1])
+          };
+          console.log(data);
+          return data;
+        });
       }).catch(err => console.log(err));
     },
     onLogin: (req /* , { hull, ship } */) => {
