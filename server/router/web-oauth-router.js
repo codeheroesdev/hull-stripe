@@ -63,7 +63,7 @@ export default function ({
 
         return Promise
         .all([metric, account, cache])
-        .then(([events, accnt = {}]) => {
+        .then(([events = {}, accnt = {}]) => {
           const data = {
             business_name: accnt.business_name,
             business_logo: accnt.business_logo,
