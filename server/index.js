@@ -20,6 +20,7 @@ if (process.env.LOGSTASH_HOST && process.env.LOGSTASH_PORT) {
 
 Server({
   Hull,
+  redisUrl: process.env.REDIS_URL,
   clientID: process.env.CLIENT_ID,
   clientSecret: process.env.CLIENT_SECRET,
   hostSecret: process.env.SECRET || "1234",

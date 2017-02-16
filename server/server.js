@@ -8,7 +8,7 @@ import StripeMiddleware from "./lib/stripe-middleware";
 import updateStripeMapping from "./lib/update-stripe-mapping";
 // import fetchStripeAccounts from "./lib/fetch-stripe-accounts";
 
-module.exports = function Server({ port, clientSecret, clientID, hostSecret, Hull }) {
+module.exports = function Server({ port, redisUrl, clientSecret, clientID, hostSecret, Hull }) {
   const { Middleware, NotifHandler } = Hull;
   const hullMiddleware = Middleware({ hostSecret, cacheShip: false });
 
@@ -19,7 +19,7 @@ module.exports = function Server({ port, clientSecret, clientID, hostSecret, Hul
   const app = WebApp({ Hull, instrumentationAgent });
 
   // Redis Store
-  const store = new Redis();
+  const store = new Redis(redisUrl);
 
   app.use("/", WebOauthRouter({
     store,
