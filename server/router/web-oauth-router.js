@@ -3,7 +3,6 @@ import { Strategy as StripeStrategy } from "passport-stripe";
 import Promise from "bluebird";
 import _ from "lodash";
 import moment from "moment";
-import OAuthHandler from "../oauth-handler";
 import Stripe from "stripe";
 
 export default function ({
@@ -13,13 +12,15 @@ export default function ({
   clientID,
   clientSecret,
   shipCache,
-  hullMiddleware,
   instrumentationAgent
 }) {
   const router = Router();
 
-  router.use("/auth", OAuthHandler(Hull, {
+  const { OAuthHandler } = Hull;
+
+  router.use("/auth", OAuthHandler({
     hostSecret,
+    tokenInUrl: false,
     shipCache,
     name: "Stripe",
     Strategy: StripeStrategy,
@@ -29,7 +30,6 @@ export default function ({
       scope: ["read_only"],
       stripe_landing: "login"
     },
-    hullMiddleware,
     isSetup(req, { hull, ship }) {
       if (req.query.reset) return Promise.reject();
 
@@ -64,12 +64,13 @@ export default function ({
         return Promise
         .all([metric, account, cache])
         .then(([events = {}, accnt = {}]) => {
+          const { business_name, business_logo } = accnt;
           return {
-            business_name: accnt.business_name,
-            business_logo: accnt.business_logo,
+            business_name,
+            business_logo,
             settings: s.private_settings,
-            token: req.hull.token,
             hostname: req.hostname,
+            token: req.hull.token,
             events: _.get(events, "series[0].pointlist", []).map(p => p[1])
           };
         });
