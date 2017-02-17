@@ -1,1 +1,1 @@
-export fetchEvents from "./fetch-events";
+export FetchEvents from "./fetch-events";

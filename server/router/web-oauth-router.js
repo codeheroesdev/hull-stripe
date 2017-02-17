@@ -64,7 +64,7 @@ export default function ({
         return Promise
         .all([metric, account, cache])
         .then(([events = {}, accnt = {}]) => {
-          const data = {
+          return {
             business_name: accnt.business_name,
             business_logo: accnt.business_logo,
             settings: s.private_settings,
@@ -72,10 +72,8 @@ export default function ({
             hostname: req.hostname,
             events: _.get(events, "series[0].pointlist", []).map(p => p[1])
           };
-          console.log(data);
-          return data;
         });
-      }).catch(err => console.log(err));
+      }).catch(err => hull.logger.error("isSetup.error", err));
     },
     onLogin: (req /* , { hull, ship } */) => {
       req.authParams = { ...req.body, ...req.query };

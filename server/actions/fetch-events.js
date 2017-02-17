@@ -7,7 +7,7 @@ import getEventName from "../lib/get-event-name";
 import getEventProperties from "../lib/get-event-properties";
 import getUserIdent from "../lib/get-user-ident";
 
-export default function fetchEventFactory(clientSecret) {
+export default function fetchEventFactory({ Hull, clientSecret }) {
   return function fetchEvents(req, res) {
     const event = req.body;
     const name = getEventName(event);

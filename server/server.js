@@ -2,11 +2,10 @@ import InstrumentationAgent from "hull-ship-base/lib/instrumentation";
 import WebApp from "hull-ship-base/lib/app/web";
 import bodyParser from "body-parser";
 import Redis from "ioredis";
-import { fetchEvents } from "./actions";
+import { FetchEvents } from "./actions";
 import WebOauthRouter from "./router/web-oauth-router";
 import StripeMiddleware from "./lib/stripe-middleware";
 import updateStripeMapping from "./lib/update-stripe-mapping";
-// import fetchStripeAccounts from "./lib/fetch-stripe-accounts";
 
 module.exports = function Server({ port, redisUrl, clientSecret, clientID, hostSecret, Hull }) {
   const { Middleware, NotifHandler } = Hull;
@@ -31,7 +30,6 @@ module.exports = function Server({ port, redisUrl, clientSecret, clientID, hostS
     instrumentationAgent
   }));
 
-
   app.post("/notify", NotifHandler({
     hostSecret,
     groupTraits: true,
@@ -43,16 +41,13 @@ module.exports = function Server({ port, redisUrl, clientSecret, clientID, hostS
     }
   }));
 
-  // // Fetch all accounts and store the reverse mapping;
-  // fetchStripeAccounts(clientSecret)
-  // .then(accounts => { console.log(accounts) }, err => console.log(err));
-
   app.use("/stripe",
     bodyParser.json(),
-    StripeMiddleware({ store, clientSecret }),
+    StripeMiddleware({ Hull, clientSecret, store }),
     hullMiddleware,
-    fetchEvents
+    FetchEvents({ Hull, clientSecret })
   );
+
   app.listen(port, () => Hull.logger.info("webApp.listen", port));
 
   return app;
