@@ -21,6 +21,8 @@ module.exports = function Server(app, { Hull, redisUrl, clientSecret, clientID }
   server.use("/notify", notifHandler({
     userHandlerOptions: {
       groupTraits: true,
+      maxSize: 1,
+      maxTime: 1
     },
     handlers: {
       "user:update": updateStripeMapping.bind(this, store),
