@@ -1,39 +1,27 @@
-import InstrumentationAgent from "hull-ship-base/lib/instrumentation";
-import WebApp from "hull-ship-base/lib/app/web";
-import bodyParser from "body-parser";
+import { notifHandler } from "hull/lib/utils";
+
 import Redis from "ioredis";
 import { FetchEvents } from "./actions";
-import WebOauthRouter from "./router/web-oauth-router";
+import webOauthRouter from "./router/web-oauth-router";
 import StripeMiddleware from "./lib/stripe-middleware";
 import updateStripeMapping from "./lib/update-stripe-mapping";
 
-module.exports = function Server({ port, redisUrl, clientSecret, clientID, hostSecret, Hull }) {
-  const { Middleware, NotifHandler } = Hull;
-  const hullMiddleware = Middleware({ hostSecret, cacheShip: false });
-
-  // This should be abstracted since anyway's it's using datadog specifics downstream
-  const instrumentationAgent = new InstrumentationAgent();
-
-  // Wrapped express() call.
-  const app = WebApp({ Hull, instrumentationAgent });
+module.exports = function Server(app, { Hull, redisUrl, clientSecret, clientID }) {
+  const server = app.server();
 
   // Redis Store
   const store = new Redis(redisUrl);
 
-  app.use("/", WebOauthRouter({
+  server.use("/auth", webOauthRouter({
     store,
-    Hull,
-    hostSecret,
     clientID,
-    clientSecret,
-    hullMiddleware,
-    instrumentationAgent
+    clientSecret
   }));
 
-  app.post("/notify", NotifHandler({
-    hostSecret,
-    groupTraits: true,
-    onError: (message, status) => console.warn("Error", status, message),
+  server.use("/notify", notifHandler({
+    userHandlerOptions: {
+      groupTraits: true,
+    },
     handlers: {
       "user:update": updateStripeMapping.bind(this, store),
       "ship:update": updateStripeMapping.bind(this, store),
@@ -41,14 +29,11 @@ module.exports = function Server({ port, redisUrl, clientSecret, clientID, hostS
     }
   }));
 
-  app.use("/stripe",
-    bodyParser.json(),
+  server.use("/stripe",
     StripeMiddleware({ Hull, clientSecret, store }),
-    hullMiddleware,
-    FetchEvents({ Hull, clientSecret })
+    app.middleware(),
+    FetchEvents({ clientSecret })
   );
-
-  app.listen(port, () => Hull.logger.info("webApp.listen", port));
 
   return app;
 };

@@ -13,6 +13,7 @@ export default function stripeMiddlewareFactory({ Hull, store }) {
       (token) => {
         req.hull = req.hull || {};
         req.hull.token = token;
+        req.hull.config = null;
         next();
       },
       (err) => {

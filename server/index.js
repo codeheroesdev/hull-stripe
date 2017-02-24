@@ -18,12 +18,19 @@ if (process.env.LOGSTASH_HOST && process.env.LOGSTASH_PORT) {
   Hull.logger.info("start", { transport: "console" });
 }
 
-Server({
+const hostSecret = process.env.SECRET || "1234";
+
+const app = new Hull.App({
+  hostSecret,
+  port: process.env.PORT || 8082
+});
+
+
+Server(app, {
   Hull,
   redisUrl: process.env.REDIS_URL,
   clientID: process.env.CLIENT_ID,
   clientSecret: process.env.CLIENT_SECRET,
-  hostSecret: process.env.SECRET || "1234",
-  devMode: process.env.NODE_ENV === "development",
-  port: process.env.PORT || 8082
 });
+
+app.start();
