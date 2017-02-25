@@ -20,13 +20,12 @@ export default function fetchEventFactory({ clientSecret }) {
     // if (name === null) return res.sendStatus(400);
 
     // probably need to move `metric` into client: `client.metric.inc`
-    client.metric.inc("ship.incoming.events");
+    // client.metric.inc("ship.incoming.events");
 
     return Promise.all([
       stripeClient.customers.retrieve(event.data.object.customer),
       stripeClient.events.retrieve(event.id)
     ]).spread((customer, verifiedEvent) => {
-
       const hullAs = getUserIdent(customer);
 
       const properties = getEventProperties(verifiedEvent);
