@@ -6,6 +6,7 @@ import { FetchEvents } from "./actions";
 import WebOauthRouter from "./router/web-oauth-router";
 import StripeMiddleware from "./lib/stripe-middleware";
 import updateStripeMapping from "./lib/update-stripe-mapping";
+import cryptFactory from "./lib/crypt";
 
 module.exports = function Server({ port, redisUrl, clientSecret, clientID, hostSecret, Hull }) {
   const { Middleware, NotifHandler } = Hull;
@@ -19,8 +20,10 @@ module.exports = function Server({ port, redisUrl, clientSecret, clientID, hostS
 
   // Redis Store
   const store = new Redis(redisUrl);
+  const crypto = cryptFactory({ hostSecret });
 
   app.use("/", WebOauthRouter({
+    crypto,
     store,
     Hull,
     hostSecret,
@@ -43,7 +46,7 @@ module.exports = function Server({ port, redisUrl, clientSecret, clientID, hostS
 
   app.use("/stripe",
     bodyParser.json(),
-    StripeMiddleware({ Hull, clientSecret, store }),
+    StripeMiddleware({ clientSecret, store, crypto }),
     hullMiddleware,
     FetchEvents({ Hull, clientSecret })
   );

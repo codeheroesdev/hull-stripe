@@ -3,12 +3,18 @@
   Uses reverse-mapping to find it from the redis store.
 */
 
-export default function stripeMiddlewareFactory({ Hull, store }) {
+export default function stripeMiddlewareFactory({ Hull, store, crypto }) {
   return function stripeMiddleware(req, res, next) {
     const event = req.body;
     if (!event) return res.sendStatus(400);
+
+    // Prevent impersonation & identity theft
+    // You only can build this encrypted version of the UID coming back from oAuth.
+
+    const uid = crypto.encrypt(event.user_id);
+
     return store
-    .get(event.user_id)
+    .get(uid)
     .then(
       (token) => {
         if (!token) {

@@ -6,6 +6,7 @@ import moment from "moment";
 import Stripe from "stripe";
 
 export default function ({
+  crypto,
   store,
   Hull,
   hostSecret,
@@ -17,6 +18,7 @@ export default function ({
   const router = Router();
 
   const { OAuthHandler } = Hull;
+  const { encrypt, decrypt } = crypto;
 
   router.use("/auth", OAuthHandler({
     hostSecret,
@@ -36,8 +38,15 @@ export default function ({
       const { private_settings = {} } = ship;
       const { token, stripe_user_id } = private_settings;
 
+      let uid;
+      try {
+        uid = decrypt(stripe_user_id);
+      } catch (e) {
+        return Promise.reject();
+      }
+
       // Early Return
-      if (!token || !stripe_user_id) return Promise.reject();
+      if (!token || !uid) return Promise.reject();
 
       return hull.get(ship.id).then((s) => {
         const now = parseInt(new Date().getTime() / 1000, 0);
@@ -59,7 +68,7 @@ export default function ({
 
 
         const account = Promise
-        .fromCallback(cb => Stripe(clientSecret).account.retrieve(stripe_user_id, cb));
+        .fromCallback(cb => Stripe(clientSecret).account.retrieve(uid, cb));
 
         return Promise
         .all([metric, account, cache])
@@ -89,7 +98,8 @@ export default function ({
           ...private_settings,
           refresh_token: refreshToken,
           token: accessToken,
-          stripe_user_id,
+          // Store it in an encrypted form so we're not vulnerable to identity theft
+          stripe_user_id: crypto.encrypt(stripe_user_id),
           stripe_publishable_key,
           token_fetched_at: moment().utc().format("x"),
         }
