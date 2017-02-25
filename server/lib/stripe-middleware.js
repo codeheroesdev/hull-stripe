@@ -11,13 +11,17 @@ export default function stripeMiddlewareFactory({ Hull, store }) {
     .get(event.user_id)
     .then(
       (token) => {
+        if (!token) {
+          Hull.logger.error("stripeMiddleware.notFound", `Could not find a user for ${event.user_id}`);
+          return res.send(200);
+        }
         req.hull = req.hull || {};
         req.hull.token = token;
-        next();
+        return next();
       },
       (err) => {
         Hull.logger.error("stripeMiddleware.error", err);
-        res.sendStatus(400);
+        res.sendStatus(500);
       }
     );
   };
