@@ -38,7 +38,7 @@
     "body-parser": "^1.15.1",
     "express": "^4.13.4",
     "flat": "^2.0.1",
-    "hull": "0.10.7",
+    "hull": "0.10.8",
     "hull-ship-base": "git+https://git@github.com/hull/hull-ship-base.git",
     "ioredis": "^2.5.0",
     "lodash": "^4.12.0",
