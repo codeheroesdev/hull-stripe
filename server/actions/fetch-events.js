@@ -17,7 +17,7 @@ export default function fetchEventFactory({ clientSecret }) {
 
     client.logger.debug("incoming.event", util.inspect(event, { depth: 4 }));
 
-    if (name === null) return res.sendStatus(400);
+    // if (name === null) return res.sendStatus(400);
 
     // probably need to move `metric` into client: `client.metric.inc`
     client.metric.inc("ship.incoming.events");
@@ -31,7 +31,10 @@ export default function fetchEventFactory({ clientSecret }) {
       const attributes = getUserAttributes(customer);
       const user = client.as(getUserIdent(customer));
       user.traits(attributes, { source: "stripe" });
-      user.track(name, properties, context);
+      if (name) {
+        // Only track if we support this event type
+        user.track(name, properties, context);
+      }
     })
     .then(
       () => res.sendStatus(200),

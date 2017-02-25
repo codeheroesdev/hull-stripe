@@ -1,3 +1,5 @@
+import _ from "lodash";
+
 export default function getUserAttributes(customer) {
   return {
     ..._.pick(customer, [
@@ -8,7 +10,7 @@ export default function getUserAttributes(customer) {
       "description",
       "email",
       "discount"
-    ])
-    created_at: customer.created;
+    ]),
+    created_at: customer.created
   }
 }
