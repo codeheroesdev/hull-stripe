@@ -26,14 +26,26 @@ export default function fetchEventFactory({ clientSecret }) {
       stripeClient.customers.retrieve(event.data.object.customer),
       stripeClient.events.retrieve(event.id)
     ]).spread((customer, verifiedEvent) => {
+
+      const hullAs = getUserIdent(customer);
+
       const properties = getEventProperties(verifiedEvent);
+      client.logger.debug("event properties", { name, properties, hullAs });
+
       const context = getEventContext(verifiedEvent);
+      client.logger.debug("event context", { name, context, hullAs });
+
       const attributes = getUserAttributes(customer);
-      const user = client.as(getUserIdent(customer));
+      client.logger.debug("user attributes", { name, attributes, hullAs });
+
+      const user = client.as(hullAs);
+
       user.traits(attributes, { source: "stripe" });
+      client.logger.info("traits", { attributes, email: hullAs.email });
       if (name) {
         // Only track if we support this event type
         user.track(name, properties, context);
+        client.logger.info("track", { name, properties, context, email: hullAs.email });
       }
     })
     .then(
