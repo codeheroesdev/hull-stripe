@@ -5,9 +5,10 @@ import stripe from "stripe";
 import getEventContext from "../lib/get-event-context";
 import getEventName from "../lib/get-event-name";
 import getEventProperties from "../lib/get-event-properties";
+import getUserAttributes from "../lib/get-user-attributes";
 import getUserIdent from "../lib/get-user-ident";
 
-export default function fetchEventFactory({ Hull, clientSecret }) {
+export default function fetchEventFactory({ clientSecret }) {
   return function fetchEvents(req, res) {
     const event = req.body;
     const name = getEventName(event);
@@ -27,8 +28,10 @@ export default function fetchEventFactory({ Hull, clientSecret }) {
     ]).spread((customer, verifiedEvent) => {
       const properties = getEventProperties(verifiedEvent);
       const context = getEventContext(verifiedEvent);
-      const user = getUserIdent(customer);
-      return client.as(user).track(name, properties, context);
+      const attributes = getUserAttributes(customer);
+      const user = client.as(getUserIdent(customer));
+      user.traits(attributes, { source: "stripe" });
+      user.track(name, properties, context);
     })
     .then(
       () => res.sendStatus(200),
