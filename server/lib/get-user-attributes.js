@@ -12,5 +12,5 @@ export default function getUserAttributes(customer) {
       "discount"
     ]),
     created_at: customer.created
-  }
+  };
 }
