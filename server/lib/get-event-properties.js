@@ -9,7 +9,6 @@ const MAP = { subscription, charge, invoice };
 
 export default function getEventProperties({ data }) {
   const { object } = data;
-
   const map = MAP[object.object];
   const properties = objectMapper(object, map) || {};
 

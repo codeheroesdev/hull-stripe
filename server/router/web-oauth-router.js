@@ -4,6 +4,7 @@ import Promise from "bluebird";
 import _ from "lodash";
 import moment from "moment";
 import Stripe from "stripe";
+import fetchEventHistory from "../actions/fetch-history";
 
 export default function ({
   crypto,
@@ -18,7 +19,7 @@ export default function ({
   const router = Router();
 
   const { OAuthHandler } = Hull;
-  const { encrypt, decrypt } = crypto;
+  const { decrypt } = crypto;
 
   router.use("/auth", OAuthHandler({
     hostSecret,
@@ -34,7 +35,6 @@ export default function ({
     },
     isSetup(req, { hull, ship }) {
       if (req.query.reset) return Promise.reject();
-
       const { private_settings = {} } = ship;
       const { token, stripe_user_id } = private_settings;
 
@@ -42,11 +42,13 @@ export default function ({
       try {
         uid = decrypt(stripe_user_id);
       } catch (e) {
-        return Promise.reject();
+        return Promise.reject({ message: "Couldn't decrypt Stripe User ID" });
       }
 
       // Early Return
-      if (!token || !uid) return Promise.reject();
+      if (!token || !uid) {
+        return Promise.reject({ message: "No token or UID" });
+      }
 
       return hull.get(ship.id).then((s) => {
         const now = parseInt(new Date().getTime() / 1000, 0);
@@ -73,8 +75,9 @@ export default function ({
         return Promise
         .all([metric, account, cache])
         .then(([events = {}, accnt = {}]) => {
-          const { business_name, business_logo } = accnt;
+          const { business_name = "", business_logo = "" } = accnt;
           return {
+            error: null,
             business_name,
             business_logo,
             settings: s.private_settings,
@@ -83,7 +86,12 @@ export default function ({
             events: _.get(events, "series[0].pointlist", []).map(p => p[1])
           };
         });
-      }).catch(err => hull.logger.error("isSetup.error", err));
+      }).catch((err) => {
+        hull.logger.error("isSetup.error", err);
+        return {
+          error: err.message
+        };
+      });
     },
     onLogin: (req /* , { hull, ship } */) => {
       req.authParams = { ...req.body, ...req.query };
@@ -105,7 +113,10 @@ export default function ({
         }
       };
 
-      return hull.put(ship.id, newShip);
+      return Promise.all([
+        fetchEventHistory({ clientSecret, hull }),
+        hull.put(ship.id, newShip)
+      ]);
     },
     views: {
       login: "login.html",
