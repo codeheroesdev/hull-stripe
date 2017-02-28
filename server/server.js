@@ -6,19 +6,18 @@ import webOauthRouter from "./router/web-oauth-router";
 import StripeMiddleware from "./lib/stripe-middleware";
 import updateStripeMapping from "./lib/update-stripe-mapping";
 
-module.exports = function Server(app, { Hull, redisUrl, clientSecret, clientID }) {
-  const server = app.server();
+module.exports = function Server(app, { Hull, connector, redisUrl, clientSecret, clientID }) {
 
   // Redis Store
   const store = new Redis(redisUrl);
 
-  server.use("/auth", webOauthRouter({
+  app.use("/auth", webOauthRouter({
     store,
     clientID,
     clientSecret
   }));
 
-  server.use("/notify", notifHandler({
+  app.use("/notify", notifHandler({
     userHandlerOptions: {
       groupTraits: true,
       maxSize: 1,
@@ -31,9 +30,9 @@ module.exports = function Server(app, { Hull, redisUrl, clientSecret, clientID }
     }
   }));
 
-  server.use("/stripe",
+  app.use("/stripe",
     StripeMiddleware({ Hull, clientSecret, store }),
-    app.middleware(),
+    connector.clientMiddleware(),
     FetchEvents({ clientSecret })
   );
 

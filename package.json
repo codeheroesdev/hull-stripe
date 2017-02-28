@@ -38,7 +38,7 @@
     "body-parser": "^1.15.1",
     "express": "^4.13.4",
     "flat": "^2.0.1",
-    "hull": "github:hull/hull-node#feature/ship-utilities",
+    "hull": "^0.11.0-beta.1",
     "ioredis": "^2.5.0",
     "lodash": "^4.12.0",
     "moment": "^2.14.1",

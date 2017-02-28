@@ -1,4 +1,6 @@
 import Hull from "hull";
+import express from "express";
+
 import Server from "./server";
 import { name } from "../manifest.json";
 
@@ -20,17 +22,19 @@ if (process.env.LOGSTASH_HOST && process.env.LOGSTASH_PORT) {
 
 const hostSecret = process.env.SECRET || "1234";
 
-const app = new Hull.App({
+const connector = new Hull.Connector({
   hostSecret,
   port: process.env.PORT || 8082
 });
-
+const app = express();
+connector.setupApp(app);
 
 Server(app, {
   Hull,
+  connector,
   redisUrl: process.env.REDIS_URL,
   clientID: process.env.CLIENT_ID,
   clientSecret: process.env.CLIENT_SECRET,
 });
 
-app.start();
+connector.startApp(app);
