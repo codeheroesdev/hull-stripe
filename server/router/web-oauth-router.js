@@ -4,13 +4,18 @@ import Promise from "bluebird";
 import _ from "lodash";
 import moment from "moment";
 import Stripe from "stripe";
+import fetchEventHistory from "../actions/fetch-history";
 
 export default function ({
+  crypto,
   store,
   clientID,
   clientSecret,
   instrumentationAgent
 }) {
+
+  const { decrypt } = crypto;
+
   return oAuthHandler({
     tokenInUrl: false,
     name: "Stripe",
@@ -24,12 +29,20 @@ export default function ({
     isSetup(req) {
       const { client: hull, ship } = req.hull;
       if (req.query.reset) return Promise.reject();
-
       const { private_settings = {} } = ship;
       const { token, stripe_user_id } = private_settings;
 
+      let uid;
+      try {
+        uid = decrypt(stripe_user_id);
+      } catch (e) {
+        return Promise.reject({ message: "Couldn't decrypt Stripe User ID" });
+      }
+
       // Early Return
-      if (!token || !stripe_user_id) return Promise.reject();
+      if (!token || !uid) {
+        return Promise.reject({ message: "No token or UID" });
+      }
 
       return hull.get(ship.id).then((s) => {
         const now = parseInt(new Date().getTime() / 1000, 0);
@@ -50,13 +63,14 @@ export default function ({
         const cache = store.set(stripe_user_id, req.hull.token);
 
         const account = Promise
-        .fromCallback(cb => Stripe(clientSecret).account.retrieve(stripe_user_id, cb));
+        .fromCallback(cb => Stripe(clientSecret).account.retrieve(uid, cb));
 
         return Promise
         .all([metric, account, cache])
         .then(([events = {}, accnt = {}]) => {
-          const { business_name, business_logo } = accnt;
+          const { business_name = "", business_logo = "" } = accnt;
           return {
+            error: null,
             business_name,
             business_logo,
             settings: s.private_settings,
@@ -65,7 +79,12 @@ export default function ({
             events: _.get(events, "series[0].pointlist", []).map(p => p[1])
           };
         });
-      }).catch(err => hull.logger.error("isSetup.error", err));
+      }).catch((err) => {
+        hull.logger.error("isSetup.error", err);
+        return {
+          error: err.message
+        };
+      });
     },
     onLogin: (req) => {
       req.authParams = { ...req.body, ...req.query };
@@ -74,13 +93,19 @@ export default function ({
     onAuthorize: ({ account, hull }) => {
       const { profile = {}, refreshToken, accessToken } = account;
       const { stripe_user_id, stripe_publishable_key } = profile;
-      return hull.client.updateSettings({
+      const newShip = {
         refresh_token: refreshToken,
-        token: accessToken,
-        stripe_user_id,
-        stripe_publishable_key,
-        token_fetched_at: moment().utc().format("x"),
-      });
+          token: accessToken,
+          // Store it in an encrypted form so we're not vulnerable to identity theft
+          stripe_user_id: crypto.encrypt(stripe_user_id),
+          stripe_publishable_key,
+          token_fetched_at: moment().utc().format("x"),
+      };
+
+      return Promise.all([
+        fetchEventHistory({ clientSecret, hull: hull.client }),
+        hull.client.updateSettings(newShip)
+      ]);
     },
     views: {
       login: "login.html",

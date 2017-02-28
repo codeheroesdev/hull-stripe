@@ -1,17 +1,20 @@
 import { notifHandler } from "hull/lib/utils";
 
 import Redis from "ioredis";
-import { FetchEvents } from "./actions";
-import webOauthRouter from "./router/web-oauth-router";
-import StripeMiddleware from "./lib/stripe-middleware";
-import updateStripeMapping from "./lib/update-stripe-mapping";
 
-module.exports = function Server(app, { Hull, connector, redisUrl, clientSecret, clientID }) {
+import { fetchHistory, updateStripeMapping, fetchEvents } from "./actions";
+import stripeMiddleware from "./lib/stripe-middleware";
+import webOauthRouter from "./router/web-oauth-router";
+import cryptFactory from "./lib/crypt";
+
+module.exports = function Server(app, { Hull, connector, hostSecret, redisUrl, clientSecret, clientID }) {
 
   // Redis Store
   const store = new Redis(redisUrl);
+  const crypto = cryptFactory({ hostSecret });
 
   app.use("/auth", webOauthRouter({
+    crypto,
     store,
     clientID,
     clientSecret
@@ -30,10 +33,19 @@ module.exports = function Server(app, { Hull, connector, redisUrl, clientSecret,
     }
   }));
 
+  app.post("/fetch-all", connector.clientMiddleware(), function fetchAllRes(req, res) {
+    const { client } = req.hull;
+    fetchHistory({ clientSecret, hull: client })
+    .then(
+      response => res.send({ ...response, status: "ok" }),
+      err => res.send({ status: "error", ...err })
+    );
+  });
+
   app.use("/stripe",
-    StripeMiddleware({ Hull, clientSecret, store }),
+    stripeMiddleware({ Hull, clientSecret, store, crypto }),
     connector.clientMiddleware(),
-    FetchEvents({ clientSecret })
+    fetchEvents({ Hull, clientSecret })
   );
 
   return app;
