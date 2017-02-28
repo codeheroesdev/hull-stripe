@@ -32,6 +32,7 @@ connector.setupApp(app);
 Server(app, {
   Hull,
   connector,
+  hostSecret,
   redisUrl: process.env.REDIS_URL,
   clientID: process.env.CLIENT_ID,
   clientSecret: process.env.CLIENT_SECRET,
