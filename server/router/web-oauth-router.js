@@ -13,7 +13,6 @@ export default function ({
   clientSecret,
   instrumentationAgent
 }) {
-
   const { decrypt } = crypto;
 
   return oAuthHandler({
@@ -95,11 +94,11 @@ export default function ({
       const { stripe_user_id, stripe_publishable_key } = profile;
       const newShip = {
         refresh_token: refreshToken,
-          token: accessToken,
-          // Store it in an encrypted form so we're not vulnerable to identity theft
-          stripe_user_id: crypto.encrypt(stripe_user_id),
-          stripe_publishable_key,
-          token_fetched_at: moment().utc().format("x"),
+        token: accessToken,
+        // Store it in an encrypted form so we're not vulnerable to identity theft
+        stripe_user_id: crypto.encrypt(stripe_user_id),
+        stripe_publishable_key,
+        token_fetched_at: moment().utc().format("x"),
       };
 
       return Promise.all([

@@ -8,7 +8,6 @@ import webOauthRouter from "./router/web-oauth-router";
 import cryptFactory from "./lib/crypt";
 
 module.exports = function Server(app, { Hull, connector, hostSecret, redisUrl, clientSecret, clientID }) {
-
   // Redis Store
   const store = new Redis(redisUrl);
   const crypto = cryptFactory({ hostSecret });

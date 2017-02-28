@@ -9,7 +9,7 @@
     "start": "node ./build",
     "start:dev": "NODE_ENV=development babel-watch -L ./server",
     "test": "NODE_ENV=test mocha --require babel-register -R spec ./tests",
-    "test:lint": "./node_modules/.bin/eslint ./server ./tests",
+    "test:lint": "eslint ./server ./tests",
     "ngrok": "ngrok http 8082 --region eu --subdomain stripe",
     "update": "./node_modules/.bin/updtr; ./node_modules/.bin/depcheck",
     "clean": "./node_modules/.bin/rimraf ./build",
