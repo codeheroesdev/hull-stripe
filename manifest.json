@@ -4,11 +4,11 @@
   "tags": ["incoming", "oneColumn"],
   "picture": "picture.png",
   "admin" : "auth",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "settings": [],
   "private_settings":[{
     "name":"metadata_external_id_parameter",
-    "title": "Metadata to match user external_id",
+    "title": "Metadata parameter to match user external_id",
     "type": "string"
   }],
   "deployment_settings": [],
