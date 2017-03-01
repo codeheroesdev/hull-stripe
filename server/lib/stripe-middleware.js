@@ -19,7 +19,7 @@ export default function stripeMiddlewareFactory({ Hull, store, crypto }) {
       (token) => {
         if (!token) {
           Hull.logger.error("stripeMiddleware.notFound", `Could not find a user for ${event.user_id}`);
-          return res.send(200);
+          return res.sendStatus(200);
         }
         req.hull = req.hull || {};
         req.hull.token = token;

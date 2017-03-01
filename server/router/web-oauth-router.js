@@ -4,7 +4,7 @@ import Promise from "bluebird";
 import _ from "lodash";
 import moment from "moment";
 import Stripe from "stripe";
-import fetchEventHistory from "../actions/fetch-history";
+import fetchHistory from "../lib/fetch-history";
 
 export default function ({
   crypto,
@@ -89,7 +89,8 @@ export default function ({
       req.authParams = { ...req.body, ...req.query };
       return Promise.resolve();
     },
-    onAuthorize: ({ account, hull }) => {
+    onAuthorize: (req) => {
+      const { account, hull } = req;
       const { profile = {}, refreshToken, accessToken } = account;
       const { stripe_user_id, stripe_publishable_key } = profile;
       const newShip = {
@@ -100,9 +101,9 @@ export default function ({
         stripe_publishable_key,
         token_fetched_at: moment().utc().format("x"),
       };
-
+      req.hull.stripe = Stripe(clientSecret);
       return Promise.all([
-        fetchEventHistory({ clientSecret, hull: hull.client }),
+        fetchHistory(req.hull),
         hull.client.updateSettings(newShip)
       ]);
     },

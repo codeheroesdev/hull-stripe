@@ -16,20 +16,25 @@ export default function fetchEventFactory({ clientSecret }) {
 
     client.logger.debug("fetchEvents.incoming", util.inspect(event, { depth: 4 }));
 
+    if (!event.data.object.customer) {
+      return res.sendStatus(204);
+    }
+
     metric.increment("ship.incoming.events");
     return Promise.all([
       stripeClient.customers.retrieve(event.data.object.customer),
       stripeClient.events.retrieve(event.id)
     ]).spread((customer, verifiedEvent) => {
-      const user = getUserIdent(customer);
-      storeEvent({ user, event: verifiedEvent, name, hull: client });
-      storeUser({ user, customer, hull: client });
-      return true;
+      const user = getUserIdent(req.hull, customer);
+      return Promise.all([
+        storeEvent({ user, event: verifiedEvent, name, hull: client }),
+        storeUser({ user, customer, hull: client })
+      ]);
     })
     .then(
       () => res.sendStatus(200),
       (err) => {
-        client.logger.error("fetchEvents.error", err);
+        client.logger.error("fetchEvents.error", err.stack || err);
         return res.sendStatus(500);
       }
     );

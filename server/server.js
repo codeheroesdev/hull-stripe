@@ -1,8 +1,10 @@
 import { notifHandler } from "hull/lib/utils";
 
 import Redis from "ioredis";
+import Stripe from "stripe";
 
-import { fetchHistory, updateStripeMapping, fetchEvents } from "./actions";
+import { updateStripeMapping, fetchEvents } from "./actions";
+import fetchHistory from "./lib/fetch-history";
 import stripeMiddleware from "./lib/stripe-middleware";
 import webOauthRouter from "./router/web-oauth-router";
 import cryptFactory from "./lib/crypt";
@@ -33,8 +35,8 @@ module.exports = function Server(app, { Hull, connector, hostSecret, redisUrl, c
   }));
 
   app.post("/fetch-all", connector.clientMiddleware(), function fetchAllRes(req, res) {
-    const { client } = req.hull;
-    fetchHistory({ clientSecret, hull: client })
+    req.hull.stripe = Stripe(clientSecret);
+    fetchHistory(req.hull)
     .then(
       response => res.send({ ...response, status: "ok" }),
       err => res.send({ status: "error", ...err })
