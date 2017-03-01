@@ -6,7 +6,11 @@
   "admin" : "auth",
   "version": "0.0.1",
   "settings": [],
-  "private_settings":[],
+  "private_settings":[{
+    "name":"metadata_external_id_parameter",
+    "title": "Metadata to match user external_id",
+    "type": "string"
+  }],
   "deployment_settings": [],
   "resources": [],
   "readme": "readme.md",

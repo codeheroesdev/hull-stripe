@@ -10,3 +10,9 @@ services:
         working_dir: /app
         volumes:
             - .:/app
+        links:
+            - redis
+    redis:
+        image: redis:3
+        ports:
+          - "6379:6379"
