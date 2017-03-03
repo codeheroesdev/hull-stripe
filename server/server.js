@@ -35,7 +35,8 @@ module.exports = function Server(app, { Hull, connector, hostSecret, redisUrl, c
   }));
 
   app.post("/fetch-all", connector.clientMiddleware(), function fetchAllRes(req, res) {
-    req.hull.stripe = Stripe(clientSecret);
+    const { ship } = req.hull
+    req.hull.stripe = Stripe(ship.private_settings.token);
     fetchHistory(req.hull)
     .then(
       response => res.send({ ...response, status: "ok" }),

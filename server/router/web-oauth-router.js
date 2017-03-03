@@ -101,7 +101,7 @@ export default function ({
         stripe_publishable_key,
         token_fetched_at: moment().utc().format("x"),
       };
-      req.hull.stripe = Stripe(clientSecret);
+      req.hull.stripe = Stripe(accessToken);
 
       // call-and-forget, keeping that function in chain makes the whole operation
       // a lot slower
