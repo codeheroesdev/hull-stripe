@@ -102,10 +102,11 @@ export default function ({
         token_fetched_at: moment().utc().format("x"),
       };
       req.hull.stripe = Stripe(clientSecret);
-      return Promise.all([
-        fetchHistory(req.hull),
-        hull.client.updateSettings(newShip)
-      ]);
+
+      // call-and-forget, keeping that function in chain makes the whole operation
+      // a lot slower
+      fetchHistory(req.hull);
+      return hull.client.updateSettings(newShip)
     },
     views: {
       login: "login.html",
