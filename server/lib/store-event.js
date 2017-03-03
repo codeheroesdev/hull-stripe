@@ -7,9 +7,9 @@ export default function storeEvent({ user, event, name, hull }) {
 
   // Only track if we support this event type
   if (name) {
-    hull.as(user).track(name, properties, context);
-    hull.logger.info("event.store", { name, properties, context, ...user });
-  } else {
-    hull.logger.warn("event.skip", { name, context, ...user });
+    hull.logger.info("incoming.event", { name, properties, context, ...user });
+    return hull.as(user).track(name, properties, context);
   }
+  hull.logger.warn("event.skip", { name, context, ...user });
+  return "";
 }

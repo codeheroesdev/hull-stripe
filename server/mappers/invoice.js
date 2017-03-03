@@ -32,7 +32,7 @@ const charge = {
   "discount.coupon.duration": "coupon_duration",
   "discount.coupon.duration_in_months": "coupon_duration_in_months",
   "discount.coupon.percent_off": "coupon_percent_off",
-  "amount_refunded": "amount_refunded",
+  amount_refunded: "amount_refunded",
   "lines.data[].plan.id": "plan_ids[]",
   "lines.data[].plan.name": "plan_names[]"
 };

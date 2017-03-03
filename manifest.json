@@ -4,9 +4,19 @@
   "tags": ["incoming", "oneColumn"],
   "picture": "picture.png",
   "admin" : "auth",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "settings": [],
-  "private_settings":[],
+  "private_settings":[{
+    "name": "id_parameter",
+    "title": "Hull user ID which the metadata param would be matched to",
+    "type": "string",
+    "enum": ["external_id", "id"],
+    "default": "external_id"
+  }, {
+    "name":"metadata_id_parameter",
+    "title": "Metadata parameter to match user id",
+    "type": "string"
+  }],
   "deployment_settings": [],
   "resources": [],
   "readme": "readme.md",

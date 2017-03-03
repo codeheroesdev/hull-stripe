@@ -1,30 +1,22 @@
-import { Router } from "express";
+import { oAuthHandler } from "hull/lib/utils";
 import { Strategy as StripeStrategy } from "passport-stripe";
 import Promise from "bluebird";
 import _ from "lodash";
 import moment from "moment";
 import Stripe from "stripe";
-import fetchEventHistory from "../actions/fetch-history";
+import fetchHistory from "../lib/fetch-history";
 
 export default function ({
   crypto,
   store,
-  Hull,
-  hostSecret,
   clientID,
   clientSecret,
-  shipCache,
   instrumentationAgent
 }) {
-  const router = Router();
-
-  const { OAuthHandler } = Hull;
   const { decrypt } = crypto;
 
-  router.use("/auth", OAuthHandler({
-    hostSecret,
+  return oAuthHandler({
     tokenInUrl: false,
-    shipCache,
     name: "Stripe",
     Strategy: StripeStrategy,
     options: {
@@ -33,7 +25,8 @@ export default function ({
       scope: ["read_only"],
       stripe_landing: "login"
     },
-    isSetup(req, { hull, ship }) {
+    isSetup(req) {
+      const { client: hull, ship } = req.hull;
       if (req.query.reset) return Promise.reject();
       const { private_settings = {} } = ship;
       const { token, stripe_user_id } = private_settings;
@@ -56,7 +49,7 @@ export default function ({
         const query = `ship.incoming.events{ship:${ship.id}}`;
 
         let metric;
-        if (process.env.DATADOG_API_KEY && process.env.DATADOG_APP_KEY) {
+        if (instrumentationAgent && process.env.DATADOG_API_KEY && process.env.DATADOG_APP_KEY) {
           instrumentationAgent.dogapi.initialize({
             api_key: process.env.DATADOG_API_KEY,
             app_key: process.env.DATADOG_APP_KEY
@@ -67,7 +60,6 @@ export default function ({
           metric = Promise.resolve();
         }
         const cache = store.set(stripe_user_id, req.hull.token);
-
 
         const account = Promise
         .fromCallback(cb => Stripe(clientSecret).account.retrieve(uid, cb));
@@ -93,30 +85,28 @@ export default function ({
         };
       });
     },
-    onLogin: (req /* , { hull, ship } */) => {
+    onLogin: (req) => {
       req.authParams = { ...req.body, ...req.query };
       return Promise.resolve();
     },
-    onAuthorize: ({ account = {} }, { hull, ship = {} }) => {
-      const { private_settings = {} } = ship;
+    onAuthorize: (req) => {
+      const { account, hull } = req;
       const { profile = {}, refreshToken, accessToken } = account;
       const { stripe_user_id, stripe_publishable_key } = profile;
       const newShip = {
-        private_settings: {
-          ...private_settings,
-          refresh_token: refreshToken,
-          token: accessToken,
-          // Store it in an encrypted form so we're not vulnerable to identity theft
-          stripe_user_id: crypto.encrypt(stripe_user_id),
-          stripe_publishable_key,
-          token_fetched_at: moment().utc().format("x"),
-        }
+        refresh_token: refreshToken,
+        token: accessToken,
+        // Store it in an encrypted form so we're not vulnerable to identity theft
+        stripe_user_id: crypto.encrypt(stripe_user_id),
+        stripe_publishable_key,
+        token_fetched_at: moment().utc().format("x"),
       };
+      req.hull.stripe = Stripe(accessToken);
 
-      return Promise.all([
-        fetchEventHistory({ clientSecret, hull }),
-        hull.put(ship.id, newShip)
-      ]);
+      // call-and-forget, keeping that function in chain makes the whole operation
+      // a lot slower
+      fetchHistory(req.hull);
+      return hull.client.updateSettings(newShip);
     },
     views: {
       login: "login.html",
@@ -124,7 +114,5 @@ export default function ({
       failure: "failure.html",
       success: "success.html"
     },
-  }));
-
-  return router;
+  });
 }

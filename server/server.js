@@ -1,41 +1,32 @@
-import InstrumentationAgent from "hull-ship-base/lib/instrumentation";
-import WebApp from "hull-ship-base/lib/app/web";
-import bodyParser from "body-parser";
+import { notifHandler } from "hull/lib/utils";
+
 import Redis from "ioredis";
-import { fetchHistory, updateStripeMapping, fetchEvents } from "./actions";
+import Stripe from "stripe";
+
+import { updateStripeMapping, fetchEvents } from "./actions";
+import fetchHistory from "./lib/fetch-history";
 import stripeMiddleware from "./lib/stripe-middleware";
 import webOauthRouter from "./router/web-oauth-router";
 import cryptFactory from "./lib/crypt";
 
-module.exports = function Server({ port, redisUrl, clientSecret, clientID, hostSecret, Hull }) {
-  const { Middleware, NotifHandler } = Hull;
-  const hullMiddleware = Middleware({ hostSecret, cacheShip: false });
-
-  // This should be abstracted since anyway's it's using datadog specifics downstream
-  const instrumentationAgent = new InstrumentationAgent();
-
-  // Wrapped express() call.
-  const app = WebApp({ Hull, instrumentationAgent });
-
+module.exports = function Server(app, { Hull, connector, hostSecret, redisUrl, clientSecret, clientID }) {
   // Redis Store
   const store = new Redis(redisUrl);
   const crypto = cryptFactory({ hostSecret });
 
-  app.use("/", webOauthRouter({
+  app.use("/auth", webOauthRouter({
     crypto,
     store,
-    Hull,
-    hostSecret,
     clientID,
-    clientSecret,
-    hullMiddleware,
-    instrumentationAgent
+    clientSecret
   }));
 
-  app.post("/notify", NotifHandler({
-    hostSecret,
-    groupTraits: true,
-    onError: (message, status) => Hull.logger.warn("NotifHandler.error", status, message),
+  app.use("/notify", notifHandler({
+    userHandlerOptions: {
+      groupTraits: true,
+      maxSize: 1,
+      maxTime: 1
+    },
     handlers: {
       "user:update": updateStripeMapping.bind(this, store),
       "ship:update": updateStripeMapping.bind(this, store),
@@ -43,9 +34,10 @@ module.exports = function Server({ port, redisUrl, clientSecret, clientID, hostS
     }
   }));
 
-  app.post("/fetch-all", bodyParser.json(), hullMiddleware, function fetchAllRes(req, res) {
-    const { client } = req.hull;
-    fetchHistory({ clientSecret, hull: client })
+  app.post("/fetch-all", connector.clientMiddleware(), function fetchAllRes(req, res) {
+    const { ship } = req.hull;
+    req.hull.stripe = Stripe(ship.private_settings.token);
+    fetchHistory(req.hull)
     .then(
       response => res.send({ ...response, status: "ok" }),
       err => res.send({ status: "error", ...err })
@@ -53,13 +45,10 @@ module.exports = function Server({ port, redisUrl, clientSecret, clientID, hostS
   });
 
   app.use("/stripe",
-    bodyParser.json(),
     stripeMiddleware({ Hull, clientSecret, store, crypto }),
-    hullMiddleware,
-    fetchEvents({ Hull, clientSecret })
+    connector.clientMiddleware(),
+    fetchEvents
   );
-
-  app.listen(port, () => Hull.logger.info("webApp.listen", port));
 
   return app;
 };

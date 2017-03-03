@@ -12,7 +12,7 @@ const charge = {
   receipt_number: "receipt_number?",
   refunded: "refunded?",
   status: "status?",
-  amount_refunded: "amount_refunded" //ignored if null
+  amount_refunded: "amount_refunded" // ignored if null
 };
 
 export default charge;
