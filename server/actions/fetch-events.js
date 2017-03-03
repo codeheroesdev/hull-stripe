@@ -8,11 +8,12 @@ import storeEvent from "../lib/store-event";
 import storeUser from "../lib/store-user";
 
 export default function fetchEventFactory({ clientSecret }) {
-  const stripeClient = stripe(clientSecret);
   return function fetchEvents(req, res) {
     const event = req.body;
     const name = getEventName(event);
-    const { client, metric } = req.hull;
+    const { client, metric, ship } = req.hull;
+
+    const stripeClient = stripe(ship.private_settings.token);
 
     client.logger.debug("fetchEvents.incoming", util.inspect(event, { depth: 4 }));
 
