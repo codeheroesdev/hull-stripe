@@ -35,7 +35,7 @@ module.exports = function Server(app, { Hull, connector, hostSecret, redisUrl, c
   }));
 
   app.post("/fetch-all", connector.clientMiddleware(), function fetchAllRes(req, res) {
-    const { ship } = req.hull
+    const { ship } = req.hull;
     req.hull.stripe = Stripe(ship.private_settings.token);
     fetchHistory(req.hull)
     .then(
@@ -47,7 +47,7 @@ module.exports = function Server(app, { Hull, connector, hostSecret, redisUrl, c
   app.use("/stripe",
     stripeMiddleware({ Hull, clientSecret, store, crypto }),
     connector.clientMiddleware(),
-    fetchEvents({ Hull, clientSecret })
+    fetchEvents
   );
 
   return app;
