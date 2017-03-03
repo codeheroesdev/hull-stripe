@@ -106,7 +106,7 @@ export default function ({
       // call-and-forget, keeping that function in chain makes the whole operation
       // a lot slower
       fetchHistory(req.hull);
-      return hull.client.updateSettings(newShip)
+      return hull.client.updateSettings(newShip);
     },
     views: {
       login: "login.html",

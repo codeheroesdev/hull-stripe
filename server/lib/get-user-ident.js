@@ -16,7 +16,7 @@ export default function getUserIdent(ctx, customer) {
   };
 
   if (_.get(customer.metadata, matchingParam)) {
-    if(idName === "id") {
+    if (idName === "id") {
       return _.get(customer.metadata, matchingParam);
     }
     ident[idName] = _.get(customer.metadata, matchingParam);
