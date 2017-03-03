@@ -1,10 +1,11 @@
 import _ from "lodash";
 
 /**
- * Build an argument for `hull.as()` method.
+ * Builds an argument for `hull.as()` method.
+ *
  * @param  {Object} ctx      Context object
  * @param  {Object} customer [description]
- * @return {mixed} object { external_id, anonymous_id } or { email, anonymous_id }
+ * @return {mixed} object { external_id, anonymous_id } or { email, anonymous_id } or "id"
  */
 export default function getUserIdent(ctx, customer) {
   const matchingParam = _.get(ctx, "ship.private_settings.metadata_id_parameter");
