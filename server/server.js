@@ -1,24 +1,25 @@
+/* @flow */
 import { notifHandler } from "hull/lib/utils";
 
-import Redis from "ioredis";
 import Stripe from "stripe";
+import express from "express";
 
 import { updateStripeMapping, fetchEvents } from "./actions";
 import fetchHistory from "./lib/fetch-history";
 import stripeMiddleware from "./lib/stripe-middleware";
 import webOauthRouter from "./router/web-oauth-router";
 import cryptFactory from "./lib/crypt";
+import StoreType from "./storeTypes";
 
-module.exports = function Server(app, { Hull, connector, hostSecret, redisUrl, clientSecret, clientID }) {
-  // Redis Store
-  const store = new Redis(redisUrl);
+module.exports = function Server(app: express, { connector, hostSecret, clientSecret, clientID }: any, store: StoreType) {
   const crypto = cryptFactory({ hostSecret });
 
   app.use("/auth", webOauthRouter({
     crypto,
     store,
     clientID,
-    clientSecret
+    clientSecret,
+    instrumentationAgent: connector.instrumentation
   }));
 
   app.use("/notify", notifHandler({
@@ -45,7 +46,7 @@ module.exports = function Server(app, { Hull, connector, hostSecret, redisUrl, c
   });
 
   app.use("/stripe",
-    stripeMiddleware({ Hull, clientSecret, store, crypto }),
+    stripeMiddleware(store, crypto),
     connector.clientMiddleware(),
     fetchEvents
   );

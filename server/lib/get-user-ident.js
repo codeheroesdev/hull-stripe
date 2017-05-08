@@ -1,3 +1,4 @@
+/* @flow */
 import _ from "lodash";
 
 /**
@@ -7,12 +8,13 @@ import _ from "lodash";
  * @param  {Object} customer [description]
  * @return {mixed} object { external_id, anonymous_id } or { email, anonymous_id } or "id"
  */
-export default function getUserIdent(ctx, customer) {
+export default function getUserIdent(ctx: any, customer: any) {
   const matchingParam = _.get(ctx, "ship.private_settings.metadata_id_parameter");
   const idName = _.get(ctx, "ship.private_settings.id_parameter");
 
   const ident = {
-    anonymous_id: `stripe:${customer.id}`
+    anonymous_id: `stripe:${customer.id}`,
+    email: {}
   };
 
   if (_.get(customer.metadata, matchingParam)) {

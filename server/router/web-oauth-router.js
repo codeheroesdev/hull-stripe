@@ -12,7 +12,7 @@ export default function ({
   clientID,
   clientSecret,
   instrumentationAgent
-}) {
+}: any) {
   const { decrypt } = crypto;
 
   return oAuthHandler({
@@ -26,7 +26,7 @@ export default function ({
       stripe_landing: "login"
     },
     isSetup(req) {
-      const { client: hull, ship } = req.hull;
+      const { client, ship } = req.hull;
       if (req.query.reset) return Promise.reject();
       const { private_settings = {} } = ship;
       const { token, stripe_user_id } = private_settings;
@@ -43,11 +43,11 @@ export default function ({
         return Promise.reject({ message: "No token or UID" });
       }
 
-      return hull.get(ship.id).then((s) => {
+      return client.get(ship.id).then((s) => {
         const now = parseInt(new Date().getTime() / 1000, 0);
         const then = now - 3600; // one hour ago
         const query = `ship.incoming.events{ship:${ship.id}}`;
-
+        //
         let metric;
         if (instrumentationAgent && process.env.DATADOG_API_KEY && process.env.DATADOG_APP_KEY) {
           instrumentationAgent.dogapi.initialize({
@@ -79,7 +79,7 @@ export default function ({
           };
         });
       }).catch((err) => {
-        hull.logger.error("isSetup.error", err);
+        client.logger.error("isSetup.error", err);
         return {
           error: err.message
         };

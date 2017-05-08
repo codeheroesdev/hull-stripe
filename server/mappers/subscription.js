@@ -1,3 +1,4 @@
+/* @flow */
 const subscription = {
   id: "subscription_id?",
   "items.total_count": "items_count?",

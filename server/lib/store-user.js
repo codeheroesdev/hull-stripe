@@ -1,7 +1,8 @@
+/* @flow */
 import getUserAttributes from "../lib/get-user-attributes";
 
-export default function storeUser({ user, customer, hull }) {
+export default function storeUser({ user, customer, client }: any) {
   const attributes = getUserAttributes(customer);
-  hull.logger.info("incoming.user", { attributes, ...user });
-  return hull.as(user).traits(attributes, { source: "stripe" });
+  client.logger.info("incoming.user", { attributes, ...user });
+  return client.asUser(user).traits(attributes, { source: "stripe" });
 }

@@ -1,3 +1,4 @@
+/* @flow */
 const charge = {
   tax: "tax",
   tax_percent: "tax_percent",

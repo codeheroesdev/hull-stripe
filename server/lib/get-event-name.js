@@ -1,3 +1,4 @@
+/* @flow */
 import _ from "lodash";
 
 const map = {
@@ -8,6 +9,6 @@ const map = {
   "customer.subscription.deleted": "Subscription ended"
 };
 
-export default function getEventName(event) {
+export default function getEventName(event: any) {
   return _.get(map, event.type, null);
 }

@@ -3,7 +3,10 @@
   Uses reverse-mapping to find it from the redis store.
 */
 
-export default function stripeMiddlewareFactory({ Hull, store, crypto }) {
+import Redis from "ioredis";
+import Crypt from "../lib/crypt";
+
+export default function stripeMiddlewareFactory(store: Redis, crypto: Crypt) {
   return function stripeMiddleware(req, res, next) {
     const event = req.body;
     if (!event) return res.sendStatus(400);
@@ -18,7 +21,7 @@ export default function stripeMiddlewareFactory({ Hull, store, crypto }) {
     .then(
       (token) => {
         if (!token) {
-          Hull.logger.error("stripeMiddleware.notFound", `Could not find a user for ${event.user_id}`);
+          req.hull.client.logger.error("stripeMiddleware.notFound", `Could not find a user for ${event.user_id}`);
           return res.sendStatus(200);
         }
         req.hull = req.hull || {};
@@ -27,7 +30,7 @@ export default function stripeMiddlewareFactory({ Hull, store, crypto }) {
         return next();
       },
       (err) => {
-        Hull.logger.error("stripeMiddleware.error", err);
+        req.hull.client.logger.error("stripeMiddleware.error", err);
         res.sendStatus(500);
       }
     );

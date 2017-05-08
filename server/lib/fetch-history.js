@@ -1,3 +1,4 @@
+/* @flow */
 import _ from "lodash";
 
 import getUserIdent from "../lib/get-user-ident";
@@ -5,7 +6,7 @@ import getEventName from "../lib/get-event-name";
 import storeEvent from "../lib/store-event";
 import storeUser from "../lib/store-user";
 
-function fetchEventPage(ctx, { customers, cursor }) {
+function fetchEventPage(ctx: any, { customers, cursor }: any) {
   const { client, stripe } = ctx;
   const list = {
     limit: 100,
@@ -15,7 +16,8 @@ function fetchEventPage(ctx, { customers, cursor }) {
       "customer.subscription.updated",
       "customer.subscription.created",
       "customer.subscription.deleted"
-    ]
+    ],
+    starting_after: {}
   };
   if (cursor) list.starting_after = cursor;
 
@@ -29,7 +31,7 @@ function fetchEventPage(ctx, { customers, cursor }) {
       const user = getUserIdent(ctx, customer);
       const eventId = event.id;
 
-      storeEvent({ user, event, name, hull: client });
+      storeEvent({ user, event, name, client });
       cursor = eventId;
       return eventId;
     });
@@ -41,7 +43,10 @@ function fetchEventPage(ctx, { customers, cursor }) {
 
 function fetchUserPage(ctx, { cursor } = {}) {
   const { client, stripe } = ctx;
-  const list = { limit: 100 };
+  const list = {
+    limit: 100,
+    starting_after: {}
+  };
   if (cursor) list.starting_after = cursor;
 
   return stripe.customers.list(list)
@@ -49,9 +54,8 @@ function fetchUserPage(ctx, { cursor } = {}) {
     client.logger.info("fetchUserPage.page", { has_more, cursor });
     const customerIds = _.map(data, (customer) => {
       const user = getUserIdent(ctx, customer);
-      storeUser({ user, customer, hull: client });
-      const customerId = customer.id;
-      cursor = customerId;
+      storeUser({ user, customer, client });
+      cursor = customer.id;
       return _.pick(customer, "id", "email", "metadata");
     });
 
@@ -60,7 +64,7 @@ function fetchUserPage(ctx, { cursor } = {}) {
   });
 }
 
-export default function fetchHistory(ctx) {
+export default function fetchHistory(ctx: any) {
   const { client } = ctx;
   client.logger.info("fetchHistory.start");
 

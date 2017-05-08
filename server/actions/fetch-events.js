@@ -1,13 +1,15 @@
+/* @flow */
 import Promise from "bluebird";
 import util from "util";
 import stripe from "stripe";
+import { Request, Response } from "express";
 
 import getUserIdent from "../lib/get-user-ident";
 import getEventName from "../lib/get-event-name";
 import storeEvent from "../lib/store-event";
 import storeUser from "../lib/store-user";
 
-export default function fetchEvents(req, res) {
+export default function fetchEvents(req: Request, res: Response) {
   const event = req.body;
   const name = getEventName(event);
   const { client, metric, ship } = req.hull;
@@ -27,8 +29,8 @@ export default function fetchEvents(req, res) {
   ]).spread((customer, verifiedEvent) => {
     const user = getUserIdent(req.hull, customer);
     return Promise.all([
-      storeEvent({ user, event: verifiedEvent, name, hull: client }),
-      storeUser({ user, customer, hull: client })
+      storeEvent({ user, event: verifiedEvent, name, client }),
+      storeUser({ user, customer, client })
     ]);
   })
   .then(
@@ -37,6 +39,8 @@ export default function fetchEvents(req, res) {
       client.logger.error("fetchEvents.error", err.stack || err);
       return res.sendStatus(500);
     }
-  );
+  ).catch((err) => {
+    console.log(err);
+  });
 }
 

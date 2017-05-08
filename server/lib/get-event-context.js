@@ -1,6 +1,7 @@
+/* @flow */
 import moment from "moment";
 
-export default function getEventContext(event) {
+export default function getEventContext(event: any) {
   return {
     source: "stripe",
     type: "payment",

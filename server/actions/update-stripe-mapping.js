@@ -1,4 +1,7 @@
-export default function (store, { token, ship }) {
+/* @flow */
+import Stripe from "stripe";
+
+export default function (store: Stripe, { token, ship }: any) {
   const { private_settings = {} } = ship;
   const { stripe_user_id } = private_settings;
 

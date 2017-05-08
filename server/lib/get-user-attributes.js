@@ -1,6 +1,7 @@
+/* @flow */
 import _ from "lodash";
 
-export default function getUserAttributes(customer) {
+export default function getUserAttributes(customer: any) {
   return {
     ..._.pick(customer, [
       "id",

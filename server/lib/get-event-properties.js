@@ -1,3 +1,4 @@
+/* @flow */
 import _ from "lodash";
 import flatten from "flat";
 import objectMapper from "object-mapper";
@@ -7,7 +8,7 @@ import invoice from "../mappers/invoice";
 
 const MAP = { subscription, charge, invoice };
 
-export default function getEventProperties({ data }) {
+export default function getEventProperties({ data }: any) {
   const { object } = data;
   const map = MAP[object.object];
   const properties = objectMapper(object, map) || {};

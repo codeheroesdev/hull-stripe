@@ -1,3 +1,4 @@
+/* @flow */
 const charge = {
   id: "charge_id?",
   invoice: "invoice_id?",
